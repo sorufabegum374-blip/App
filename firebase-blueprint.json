@@ -1,0 +1,104 @@
+{
+  "entities": {
+    "ShaderPreset": {
+      "title": "ShaderPreset",
+      "description": "An AI-generated shader configuration with PBR lighting, atmosphere, water, ray-traced GI parameters, and GLSL fragment shader code.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID."
+        },
+        "title": {
+          "type": "string",
+          "description": "Display title of the shader preset (1-80 chars)."
+        },
+        "prompt": {
+          "type": "string",
+          "description": "User natural-language prompt used to generate or refine the shader (1-600 chars)."
+        },
+        "presetCategory": {
+          "type": "string",
+          "enum": ["VIBRANT_VISUALS", "RTX_RAYTRACED", "ATMOSPHERIC", "STYLIZED", "PERFORMANCE_32BIT"],
+          "description": "Shader visual style category."
+        },
+        "targetPlatform": {
+          "type": "string",
+          "enum": ["BEDROCK_VIBRANT", "JAVA_OPTIFINE", "UNIVERSAL_GLSL"],
+          "description": "Target export pack format."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Short technical breakdown of lighting, water, and ray-bounce effects."
+        },
+        "fragmentShader": {
+          "type": "string",
+          "description": "GLSL fragment shader code for real-time OpenGL ES preview and shader pack export."
+        },
+        "sunWarmth": { "type": "number" },
+        "sunElevation": { "type": "number" },
+        "fogDensity": { "type": "number" },
+        "godRaysIntensity": { "type": "number" },
+        "waterReflectivity": { "type": "number" },
+        "giBounceIntensity": { "type": "number" },
+        "bloomIntensity": { "type": "number" },
+        "saturation": { "type": "number" },
+        "exposure": { "type": "number" },
+        "shadowSoftness": { "type": "number" },
+        "pbrMetallicBoost": { "type": "number" },
+        "skyZenithHex": { "type": "string" },
+        "skyHorizonHex": { "type": "string" },
+        "sunLightHex": { "type": "string" },
+        "ambientTintHex": { "type": "string" },
+        "waterTintHex": { "type": "string" },
+        "fogTintHex": { "type": "string" },
+        "favorite": { "type": "boolean" },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on creation (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp on last update (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "prompt",
+        "presetCategory",
+        "targetPlatform",
+        "summary",
+        "fragmentShader",
+        "sunWarmth",
+        "sunElevation",
+        "fogDensity",
+        "godRaysIntensity",
+        "waterReflectivity",
+        "giBounceIntensity",
+        "bloomIntensity",
+        "saturation",
+        "exposure",
+        "shadowSoftness",
+        "pbrMetallicBoost",
+        "skyZenithHex",
+        "skyHorizonHex",
+        "sunLightHex",
+        "ambientTintHex",
+        "waterTintHex",
+        "fogTintHex",
+        "favorite",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/shaders/{shaderId}": {
+      "schema": { "$ref": "#/entities/ShaderPreset" },
+      "description": "User-owned saved AI shader presets and generated GLSL/PBR configurations."
+    }
+  }
+}

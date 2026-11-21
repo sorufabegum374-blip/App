@@ -1,0 +1,6 @@
+{
+  "name": "Lumina Shader Forge",
+  "description": "AI-powered prompt-to-shader studio for generating Vibrant Visuals, RTX-style ray-traced lighting, and GLSL shader packs with live OpenGL ES preview and .mcpack export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

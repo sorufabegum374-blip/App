@@ -1,0 +1,118 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isHexColor(val) {
+      return val is string && val.size() == 7 && val.matches('^#[0-9A-Fa-f]{6}$');
+    }
+
+    function isInRange(val, minVal, maxVal) {
+      return val is number && val >= minVal && val <= maxVal;
+    }
+
+    function isValidShader(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 80 &&
+             data.prompt is string && data.prompt.size() >= 1 && data.prompt.size() <= 600 &&
+             data.presetCategory in ['VIBRANT_VISUALS', 'RTX_RAYTRACED', 'ATMOSPHERIC', 'STYLIZED', 'PERFORMANCE_32BIT'] &&
+             data.targetPlatform in ['BEDROCK_VIBRANT', 'JAVA_OPTIFINE', 'UNIVERSAL_GLSL'] &&
+             data.summary is string && data.summary.size() <= 500 &&
+             data.fragmentShader is string && data.fragmentShader.size() >= 10 && data.fragmentShader.size() <= 15000 &&
+             isInRange(data.sunWarmth, 0.0, 2.0) &&
+             isInRange(data.sunElevation, -0.5, 1.5) &&
+             isInRange(data.fogDensity, 0.0, 2.0) &&
+             isInRange(data.godRaysIntensity, 0.0, 2.0) &&
+             isInRange(data.waterReflectivity, 0.0, 1.5) &&
+             isInRange(data.giBounceIntensity, 0.0, 2.0) &&
+             isInRange(data.bloomIntensity, 0.0, 2.0) &&
+             isInRange(data.saturation, 0.0, 2.5) &&
+             isInRange(data.exposure, 0.2, 3.0) &&
+             isInRange(data.shadowSoftness, 0.0, 2.0) &&
+             isInRange(data.pbrMetallicBoost, 0.0, 2.0) &&
+             isHexColor(data.skyZenithHex) &&
+             isHexColor(data.skyHorizonHex) &&
+             isHexColor(data.sunLightHex) &&
+             isHexColor(data.ambientTintHex) &&
+             isHexColor(data.waterTintHex) &&
+             isHexColor(data.fogTintHex) &&
+             data.favorite is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId}/shaders/{shaderId} {
+      allow list: if isOwner(userId);
+      allow get: if isOwner(userId) && isValidId(shaderId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(shaderId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'title', 'prompt', 'presetCategory', 'targetPlatform',
+                         'summary', 'fragmentShader', 'sunWarmth', 'sunElevation',
+                         'fogDensity', 'godRaysIntensity', 'waterReflectivity',
+                         'giBounceIntensity', 'bloomIntensity', 'saturation',
+                         'exposure', 'shadowSoftness', 'pbrMetallicBoost',
+                         'skyZenithHex', 'skyHorizonHex', 'sunLightHex',
+                         'ambientTintHex', 'waterTintHex', 'fogTintHex',
+                         'favorite', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'title', 'prompt', 'presetCategory', 'targetPlatform',
+                         'summary', 'fragmentShader', 'sunWarmth', 'sunElevation',
+                         'fogDensity', 'godRaysIntensity', 'waterReflectivity',
+                         'giBounceIntensity', 'bloomIntensity', 'saturation',
+                         'exposure', 'shadowSoftness', 'pbrMetallicBoost',
+                         'skyZenithHex', 'skyHorizonHex', 'sunLightHex',
+                         'ambientTintHex', 'waterTintHex', 'fogTintHex',
+                         'favorite', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidShader(incoming(), userId);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(shaderId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidShader(incoming(), userId) &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'prompt', 'presetCategory', 'targetPlatform',
+                           'summary', 'fragmentShader', 'sunWarmth', 'sunElevation',
+                           'fogDensity', 'godRaysIntensity', 'waterReflectivity',
+                           'giBounceIntensity', 'bloomIntensity', 'saturation',
+                           'exposure', 'shadowSoftness', 'pbrMetallicBoost',
+                           'skyZenithHex', 'skyHorizonHex', 'sunLightHex',
+                           'ambientTintHex', 'waterTintHex', 'fogTintHex',
+                           'updatedAt'
+                         ]) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly(['favorite', 'updatedAt'])
+                       );
+
+      allow delete: if isOwner(userId) && isValidId(shaderId);
+    }
+  }
+}
